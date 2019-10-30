@@ -5,6 +5,7 @@ from numpy import loadtxt
 import pandas as pd
 from keras.models import Sequential
 from keras.layers import Dense
+import json
 
 # we'll use the onset of diabetes dataset a standard ML dataset from UCI ML repository
 # it is a binary classification problem (onset of diabetes as 1 or not as 0)
@@ -33,9 +34,9 @@ dataset
 
 # once the data is loaded we can split the data into input and output
 X = dataset[:, :-1]
-y = dataset[:, -1]
+Y = dataset[:, -1]
 print(X)
-print(y)
+print(Y)
 
 # Define Keras Model
 # models in keras are defined as a sequence of layers
@@ -81,7 +82,7 @@ model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy']
 
 # fit the keras model on the dataset
 # this is where the work happens on your CPU or GPU
-model.fit(X, y, epochs=150, batch_size=10)
+model.fit(X, Y, epochs=150, batch_size=10)
 
 # Evaluate Keras Model
 # We have trained our neural network on the entire dataset and we can evaluate the performance of the network on the same dataset.
@@ -90,7 +91,7 @@ model.fit(X, y, epochs=150, batch_size=10)
 # we'll see how the model works on the current data set, but we don't know how it will work on a new dataset
 # in order to do so, you can separate the data into train and test datasets for training and evaluation
 # evaluate returns a pair of values (loss, accuracy)
-loss, accuracy = model.evaluate(X, y)
+loss, accuracy = model.evaluate(X, Y)
 print(f'Loss: {loss} and Accuracy: {accuracy * 100}')
 
 # we would like the loss to go to zero and accuracy to go to 1.0 (e.g. 100%)
@@ -106,5 +107,26 @@ print(f'Loss: {loss} and Accuracy: {accuracy * 100}')
 predictions = model.predict_classes(X)
 
 for i in range(15):
-    print(f'{X[i].tolist()} => {predictions[i]} (expected {y[i]})')
+    print(f'{X[i].tolist()} => {predictions[i]} (expected {Y[i]})')
 
+# Keras separates the concerns of saving your model architecture and saving your model weights
+# Model weights are saved to HDF5 format
+# Model structure can be saved as YAML / JSON
+
+# Save your model to JSON
+# JSON is a simple file format for describing data hierarchically
+
+# serialize model to JSON
+##
+model_json = model.to_json()
+
+with open('model.json', 'w') as json_file:
+   print('saving model to disk')
+   json.dump(model_json, json_file) 
+
+# serialize weigths to HDF5
+model.save_weights('model.h5')
+print('saved weights to disk')
+
+# save architecture + model + weights into a single file
+model.save('model_simple.h5')
